@@ -38,3 +38,42 @@ size_t Header::GetTagSize() {
 }
 
 
+size_t FrameEntity::GetFrameSize() {
+    return frame_size_;
+}
+
+std::string FrameEntity::GetFrameID() {
+    return frame_id_;
+}
+
+bool FrameEntity::GetTagSaveFlag() {
+    return tag_save_flag_;
+}
+
+bool FrameEntity::GetFileSaveFlag() {
+    return file_save_flag_;
+}
+
+bool FrameEntity::GetReadOnlyFlag() {
+    return read_only_flag_;
+}
+
+bool FrameEntity::GetGroupIdentityFlag() {
+    return group_identity_flag_;
+}
+
+bool FrameEntity::GetCompressionFlag() {
+    return compression_flag_;
+}
+
+bool FrameEntity::GetEncryptFlag() {
+    return encrypt_flag_;
+}
+
+bool FrameEntity::GetUnsyncFlag() {
+    return unsync_flag_;
+}
+
+bool FrameEntity::GetDataSizeIdFlag() {
+    return data_size_indicator_flag_;
+}

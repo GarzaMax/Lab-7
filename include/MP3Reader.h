@@ -12,7 +12,53 @@
 std::string RecogniseFrameType(std::string FrameTag) {
 
     if (FrameTag == "TXXX") {
-        
+        return "TXXXFrame";
+    } else if (FrameTag[0] == 'T') {
+        return "TextFrame";
+    } else if (FrameTag == "UFID") {
+        return "UFIDFrame";
+    } else if (FrameTag == "MCDI") {
+        return "MCDIFrame";
+    } else if (FrameTag == "WXXX") {
+        return "WXXXFrame";
+    } else if (FrameTag[0] == 'W') {
+        return "URLFrame";
+    } else if (FrameTag == "ECTO") {
+        return "ECTOFrame";
+    } else if (FrameTag == "USLT") {
+        return "USLTFrame";
+    } else if (FrameTag == "SYLT") {
+        return "SYLTFrame";
+    } else if (FrameTag == "COMM") {
+        return "COMMFrame";
+    } else if (FrameTag == "RVA2") {
+        return "RVA2Frame";
+    } else if (FrameTag == "EQU2") {
+        return "EQU2Frame";
+    } else if (FrameTag == "PCNT") {
+        return "PCNTFrame";
+    } else if (FrameTag == "POPM") {
+        return "POPMFrame";
+    } else if (FrameTag == "RBUF") {
+        return "RBUFFrame";
+    } else if (FrameTag == "LINK") {
+        return "LINKFrame";
+    } else if (FrameTag == "POSS") {
+        return "POSSFrame";
+    } else if (FrameTag == "USER") {
+        return "USERFrame";
+    } else if (FrameTag == "OWNE") {
+        return "OWNEFrame";
+    } else if (FrameTag == "COMR") {
+        return "COMRFrame";
+    } else if (FrameTag == "ENCR") {
+        return "ENCRFrame";
+    } else if (FrameTag == "GRID") {
+        return "GRIDFrame";
+    } else if (FrameTag == "PRIV") {
+        return "PRIVFrame";
+    } else {
+        return "NotRecognized";
     }
 
 }
@@ -28,7 +74,7 @@ private:
     bool footer_flag_;
     size_t tag_size_;
 public:
-    Header(std::ifstream &file) {
+    Header(std::ifstream& file) {
         for (int i = 0; i < 3; i++) file_id_ += file.get();
         id3v2_version_ = (short) file.get();
         id3v2_revision_ = (short) file.get();
@@ -47,7 +93,7 @@ public:
 
     ~Header() = default;
 
-    Header &operator=(Header other) {
+    Header& operator=(Header other) {
         file_id_ = other.file_id_;
         id3v2_version_ = other.id3v2_version_;
         id3v2_revision_ = other.id3v2_revision_;
@@ -96,7 +142,7 @@ private:
     bool data_size_indicator_flag_;
 
 public:
-    FrameEntity(std::ifstream &file) {
+    FrameEntity(std::ifstream& file) {
         for (int i = 0; i < 4; i++) frame_id_ += file.get();
         std::string tmp_size_container;
         for (int i = 0; i < 4; i++) tmp_size_container += file.get();
@@ -120,6 +166,26 @@ public:
 
     ~FrameEntity() = default;
 
+    std::string GetFrameID();
+
+    size_t GetFrameSize();
+
+    bool GetTagSaveFlag();
+
+    bool GetFileSaveFlag();
+
+    bool GetReadOnlyFlag();
+
+    bool GetGroupIdentityFlag();
+
+    bool GetCompressionFlag();
+
+    bool GetEncryptFlag();
+
+    bool GetUnsyncFlag();
+
+    bool GetDataSizeIdFlag();
+
 };
 
 // UFID Frame definition
@@ -127,6 +193,19 @@ public:
 class UFIDFrame : public FrameEntity {
 private:
     std::string owner_header_;
+    std::bitset<64> binary_data_;
+public:
+
+    UFIDFrame(std::ifstream& file) :
+            FrameEntity(file) {
+        std::getline(file, owner_header_);
+        std::string binary_data_container;
+        for (int i = 0; i < GetFrameSize() - owner_header_.size(); i++) binary_data_container += file.get();
+        std::bitset<64> tmp(binary_data_container);
+        binary_data_ = tmp;
+    }
+
+    ~UFIDFrame() = default;
 
 };
 
@@ -135,6 +214,7 @@ private:
 class MCDI : public FrameEntity {
 private:
     std::string cd_header_;
+
 };
 
 // Text Frames section
@@ -157,7 +237,7 @@ private:
     std::string url_link_;
 };
 
-class UXXXFrame : public URLFrame {
+class WXXXFrame : public URLFrame {
 private:
     wchar_t text_encode_;
     std::string description_;
@@ -327,18 +407,14 @@ private:
     std::string private_data_;
 };
 
-class MP3Reader {
-
-};
-
 class MP3Entity {
 private:
     std::string file_path_;
     std::ifstream file_;
-    Header *file_header_;
+    Header* file_header_;
     std::map<std::string, std::any>;
 public:
-    MP3Entity(const std::string &file_path) :
+    MP3Entity(const std::string& file_path) :
             file_path_(file_path) {
         file_.open(file_path_);
         if (file_.is_open()) {
@@ -358,7 +434,6 @@ public:
                                           static_cast<uint8_t>(tmp_ehsize[3]);
             file_.seekg(extended_header_size - 4, std::ios::cur);
         }
-
 
 
     }
