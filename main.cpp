@@ -3,6 +3,6 @@
 #include "include/MP3Reader.h"
 
 int main() {
-    MP3Entity re("../src/assets/sounds/2.mp3");
+    MP3Entity re("../src/assets/sounds/tag.mp3");
     return 0;
 }

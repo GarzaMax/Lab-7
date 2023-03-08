@@ -9,60 +9,6 @@
 #include <vector>
 #include <utility>
 
-std::string RecogniseFrameType(std::string FrameTag) {
-
-    if (FrameTag == "TXXX") {
-        return "TXXXFrame";
-    } else if (FrameTag[0] == 'T') {
-        return "TextFrame";
-    } else if (FrameTag == "UFID") {
-        return "UFIDFrame";
-    } else if (FrameTag == "MCDI") {
-        return "MCDIFrame";
-    } else if (FrameTag == "WXXX") {
-        return "WXXXFrame";
-    } else if (FrameTag[0] == 'W') {
-        return "URLFrame";
-    } else if (FrameTag == "ECTO") {
-        return "ECTOFrame";
-    } else if (FrameTag == "USLT") {
-        return "USLTFrame";
-    } else if (FrameTag == "SYLT") {
-        return "SYLTFrame";
-    } else if (FrameTag == "COMM") {
-        return "COMMFrame";
-    } else if (FrameTag == "RVA2") {
-        return "RVA2Frame";
-    } else if (FrameTag == "EQU2") {
-        return "EQU2Frame";
-    } else if (FrameTag == "PCNT") {
-        return "PCNTFrame";
-    } else if (FrameTag == "POPM") {
-        return "POPMFrame";
-    } else if (FrameTag == "RBUF") {
-        return "RBUFFrame";
-    } else if (FrameTag == "LINK") {
-        return "LINKFrame";
-    } else if (FrameTag == "POSS") {
-        return "POSSFrame";
-    } else if (FrameTag == "USER") {
-        return "USERFrame";
-    } else if (FrameTag == "OWNE") {
-        return "OWNEFrame";
-    } else if (FrameTag == "COMR") {
-        return "COMRFrame";
-    } else if (FrameTag == "ENCR") {
-        return "ENCRFrame";
-    } else if (FrameTag == "GRID") {
-        return "GRIDFrame";
-    } else if (FrameTag == "PRIV") {
-        return "PRIVFrame";
-    } else {
-        return "NotRecognized";
-    }
-
-}
-
 class Header {
 private:
     std::string file_id_;
@@ -166,6 +112,8 @@ public:
 
     bool GetDataSizeIdFlag() const;
 
+    void SetFrameID(std::string frame_id);
+
 };
 
 // UFID Frame definition
@@ -176,7 +124,7 @@ private:
     std::bitset<64> binary_data_;
 public:
 
-    UFIDFrame(std::ifstream& file);
+    UFIDFrame(std::ifstream& file, std::string frame_name);
 
     ~UFIDFrame() = default;
 
@@ -184,11 +132,11 @@ public:
 
 // Music CD ID definition
 
-class MCDI : public FrameEntity {
+class MCDIFrame : public FrameEntity {
 private:
     std::vector<unsigned char> cd_header_;
 public:
-    MCDI(std::ifstream& file);
+    MCDIFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Text Frames section
@@ -198,7 +146,7 @@ private:
     unsigned char text_encode_;
     std::string info_string_;
 public:
-    TextFrame(std::ifstream& file);
+    TextFrame(std::ifstream& file, std::string frame_name);
 };
 
 class TXXXFrame : public FrameEntity {
@@ -207,7 +155,9 @@ private:
     std::string info_string_;
     std::string description_;
 public:
-    TXXXFrame(std::ifstream& file);
+    TXXXFrame(std::ifstream& file, std::string frame_name);
+
+
 };
 
 // URL Frames section
@@ -216,7 +166,7 @@ class URLFrame : public FrameEntity {
 private:
     std::string url_link_;
 public:
-    URLFrame(std::ifstream& file);
+    URLFrame(std::ifstream& file, std::string frame_name);
 };
 
 class WXXXFrame : public FrameEntity {
@@ -225,7 +175,7 @@ private:
     std::string description_;
     std::string url_;
 public:
-    WXXXFrame(std::ifstream& file);
+    WXXXFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Time stamp frames section
@@ -234,7 +184,7 @@ class ECTOFrame : public FrameEntity {
 private:
     std::vector<std::pair<unsigned char, unsigned char>> time_stamps_list_;
 public:
-    ECTOFrame(std::ifstream& file);
+    ECTOFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Unsync lyrics copy
@@ -246,7 +196,7 @@ private:
     std::string description_;
     std::string lyrics_;
 public:
-    USLTFrame(std::ifstream& file);
+    USLTFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Sync lyrics copy
@@ -259,7 +209,7 @@ private:
     unsigned char info_type_;
     std::string info_;
 public:
-    SYLTFrame(std::ifstream& file);
+    SYLTFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Comments Frame
@@ -271,7 +221,7 @@ private:
     std::string short_description_;
     std::string factial_text_;
 public:
-    COMMFrame(std::ifstream& file);
+    COMMFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Relative Volume Adjustment frame
@@ -303,7 +253,7 @@ class PCNTFrame : public FrameEntity {
 private:
     uint32_t counter_;
 public:
-    PCNTFrame(std::ifstream& file);
+    PCNTFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Popularity measure
@@ -314,7 +264,7 @@ private:
     unsigned char rating_;
     uint32_t counter_;
 public:
-    POPMFrame(std::ifstream& file);
+    POPMFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Recomended buffer size
@@ -325,7 +275,7 @@ private:
     bool included_info_flag_;
     unsigned char offset_to_next_frame_[4];
 public:
-    RBUFFrame(std::ifstream& file);
+    RBUFFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Linked information
@@ -336,7 +286,7 @@ private:
     std::string url_;
     std::string additional_info_;
 public:
-    LINKFrame(std::ifstream& file);
+    LINKFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Sync position
@@ -346,7 +296,7 @@ private:
     unsigned char timestamp_format_;
     unsigned char position_;
 public:
-    POSSFrame(std::ifstream& file) :
+    POSSFrame(std::ifstream& file, std::string frame_name) :
             FrameEntity(file) {
         timestamp_format_ = file.get();
         position_ = file.get();
@@ -362,7 +312,7 @@ private:
     unsigned char language_[3];
     std::string factial_text_;
 public:
-    USERFrame(std::ifstream& file);
+    USERFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Owner Frame
@@ -374,7 +324,7 @@ private:
     std::string purchase_date_;
     std::string seller_;
 public:
-    OWNEFrame(std::ifstream& file);
+    OWNEFrame(std::ifstream& file, std::string frame_name);
 };
 
 // Commercial Frame
