@@ -106,19 +106,19 @@ public:
 
     std::string GetFileID();
 
-    short GetIDVersion();
+    short GetIDVersion() const;
 
-    short GetIDRevision();
+    short GetIDRevision() const;
 
-    bool GetUnsyncFlag();
+    bool GetUnsyncFlag() const;
 
-    bool GetExperimentalFlag();
+    bool GetExperimentalFlag() const;
 
-    bool GetExtendedHeaderFlag();
+    bool GetExtendedHeaderFlag() const;
 
-    bool GetFooterFlag();
+    bool GetFooterFlag() const;
 
-    bool GetTagSize();
+    size_t GetTagSize() const;
 };
 
 class ExtendedHeader {
@@ -142,49 +142,29 @@ private:
     bool data_size_indicator_flag_;
 
 public:
-    FrameEntity(std::ifstream& file) {
-        for (int i = 0; i < 4; i++) frame_id_ += file.get();
-        std::string tmp_size_container;
-        for (int i = 0; i < 4; i++) tmp_size_container += file.get();
-        frame_size_ = static_cast<uint8_t>(tmp_size_container[0]) << 24U |
-                      static_cast<uint8_t>(tmp_size_container[1]) << 16U |
-                      static_cast<uint8_t>(tmp_size_container[2]) << 8U |
-                      static_cast<uint8_t>(tmp_size_container[3]);
-        std::string tmp_flag_container;
-        for (int i = 0; i < 2; i++) tmp_flag_container += file.get();
-        std::bitset<8> frame_flags((int) file.get());
-        tag_save_flag_ = frame_flags[6];
-        file_save_flag_ = frame_flags[5];
-        read_only_flag_ = frame_flags[4];
-        frame_flags = (int) file.get();
-        group_identity_flag_ = frame_flags[6];
-        compression_flag_ = frame_flags[3];
-        encrypt_flag_ = frame_flags[2];
-        unsync_flag_ = frame_flags[1];
-        data_size_indicator_flag_ = frame_flags[0];
-    }
+    FrameEntity(std::ifstream& file);
 
     ~FrameEntity() = default;
 
     std::string GetFrameID();
 
-    size_t GetFrameSize();
+    size_t GetFrameSize() const;
 
-    bool GetTagSaveFlag();
+    bool GetTagSaveFlag() const;
 
-    bool GetFileSaveFlag();
+    bool GetFileSaveFlag() const;
 
     bool GetReadOnlyFlag();
 
-    bool GetGroupIdentityFlag();
+    bool GetGroupIdentityFlag() const;
 
-    bool GetCompressionFlag();
+    bool GetCompressionFlag() const;
 
-    bool GetEncryptFlag();
+    bool GetEncryptFlag() const;
 
-    bool GetUnsyncFlag();
+    bool GetUnsyncFlag() const;
 
-    bool GetDataSizeIdFlag();
+    bool GetDataSizeIdFlag() const;
 
 };
 
@@ -196,14 +176,7 @@ private:
     std::bitset<64> binary_data_;
 public:
 
-    UFIDFrame(std::ifstream& file) :
-            FrameEntity(file) {
-        std::getline(file, owner_header_);
-        std::string binary_data_container;
-        for (int i = 0; i < GetFrameSize() - owner_header_.size(); i++) binary_data_container += file.get();
-        std::bitset<64> tmp(binary_data_container);
-        binary_data_ = tmp;
-    }
+    UFIDFrame(std::ifstream& file);
 
     ~UFIDFrame() = default;
 
@@ -213,21 +186,28 @@ public:
 
 class MCDI : public FrameEntity {
 private:
-    std::string cd_header_;
-
+    std::vector<unsigned char> cd_header_;
+public:
+    MCDI(std::ifstream& file);
 };
 
 // Text Frames section
 
 class TextFrame : public FrameEntity {
 private:
-    wchar_t text_encode_;
+    unsigned char text_encode_;
     std::string info_string_;
+public:
+    TextFrame(std::ifstream& file);
 };
 
-class TXXXFrame : public TextFrame {
+class TXXXFrame : public FrameEntity {
 private:
+    unsigned char text_encode_;
+    std::string info_string_;
     std::string description_;
+public:
+    TXXXFrame(std::ifstream& file);
 };
 
 // URL Frames section
@@ -235,60 +215,72 @@ private:
 class URLFrame : public FrameEntity {
 private:
     std::string url_link_;
+public:
+    URLFrame(std::ifstream& file);
 };
 
-class WXXXFrame : public URLFrame {
+class WXXXFrame : public FrameEntity {
 private:
-    wchar_t text_encode_;
+    unsigned char text_encode_;
     std::string description_;
+    std::string url_;
+public:
+    WXXXFrame(std::ifstream& file);
 };
 
 // Time stamp frames section
 
 class ECTOFrame : public FrameEntity {
 private:
-    std::vector<std::pair<wchar_t, wchar_t>> time_stamps_list_;
+    std::vector<std::pair<unsigned char, unsigned char>> time_stamps_list_;
+public:
+    ECTOFrame(std::ifstream& file);
 };
 
 // Unsync lyrics copy
 
 class USLTFrame : public FrameEntity {
 private:
-    wchar_t text_encode_;
-    wchar_t language_[3];
+    unsigned char text_encode_;
+    unsigned char language_[3];
     std::string description_;
     std::string lyrics_;
+public:
+    USLTFrame(std::ifstream& file);
 };
 
 // Sync lyrics copy
 
 class SYLTFrame : public FrameEntity {
 private:
-    wchar_t encode_;
-    wchar_t language_[3];
-    wchar_t time_stamp_format_;
-    wchar_t info_type_;
+    unsigned char encode_;
+    unsigned char language_[3];
+    unsigned char time_stamp_format_;
+    unsigned char info_type_;
     std::string info_;
+public:
+    SYLTFrame(std::ifstream& file);
 };
 
 // Comments Frame
 
 class COMMFrame : public FrameEntity {
 private:
-    wchar_t encode_;
-    wchar_t language_[3];
+    unsigned char encode_;
+    unsigned char language_[3];
     std::string short_description_;
     std::string factial_text_;
+public:
+    COMMFrame(std::ifstream& file);
 };
 
 // Relative Volume Adjustment frame
 
-class Chanel {
-private:
-    wchar_t chanel_type_;
-    wchar_t volume_adjustment_;
-    wchar_t peak_bytes_;
-    wchar_t peak_volume_;
+struct Chanel {
+    unsigned char chanel_type_;
+    unsigned char volume_adjustment_;
+    unsigned char peak_bytes_;
+    unsigned char peak_volume_;
 };
 
 class RVA2Frame : public FrameEntity {
@@ -301,7 +293,7 @@ private:
 
 class EQU2Frame : public FrameEntity {
 private:
-    wchar_t interpolation_method_;
+    unsigned char interpolation_method_;
     std::string id_;
 };
 
@@ -310,6 +302,8 @@ private:
 class PCNTFrame : public FrameEntity {
 private:
     uint32_t counter_;
+public:
+    PCNTFrame(std::ifstream& file);
 };
 
 // Popularity measure
@@ -317,64 +311,81 @@ private:
 class POPMFrame : public FrameEntity {
 private:
     std::string email_;
-    wchar_t rating_;
+    unsigned char rating_;
     uint32_t counter_;
+public:
+    POPMFrame(std::ifstream& file);
 };
 
 // Recomended buffer size
 
 class RBUFFrame : public FrameEntity {
 private:
-    wchar_t buffer_size_[3];
+    unsigned char buffer_size_[3];
     bool included_info_flag_;
-    wchar_t offset_to_next_frame_[4];
+    unsigned char offset_to_next_frame_[4];
+public:
+    RBUFFrame(std::ifstream& file);
 };
 
 // Linked information
 
 class LINKFrame : public FrameEntity {
 private:
-    wchar_t id_of_frame_[4];
+    unsigned char id_of_frame_[4];
     std::string url_;
     std::string additional_info_;
+public:
+    LINKFrame(std::ifstream& file);
 };
 
 // Sync position
 
-class POSSFrame {
+class POSSFrame : public FrameEntity {
 private:
-    wchar_t timestamp_format_;
-    wchar_t position_;
+    unsigned char timestamp_format_;
+    unsigned char position_;
+public:
+    POSSFrame(std::ifstream& file) :
+            FrameEntity(file) {
+        timestamp_format_ = file.get();
+        position_ = file.get();
+    }
+
 };
 
 // User Agreement Frame
 
-class USERFrame {
+class USERFrame : public FrameEntity {
 private:
-    wchar_t text_encoding_;
-    wchar_t language_[3];
+    unsigned char text_encoding_;
+    unsigned char language_[3];
     std::string factial_text_;
+public:
+    USERFrame(std::ifstream& file);
 };
 
 // Owner Frame
 
-class OWNEFrame {
+class OWNEFrame : public FrameEntity {
 private:
-    wchar_t text_encoding_;
+    unsigned char text_encoding_;
     std::string paid_price_;
     std::string purchase_date_;
     std::string seller_;
+public:
+    OWNEFrame(std::ifstream& file);
 };
 
 // Commercial Frame
 
 class COMRFrame : public FrameEntity {
 private:
-    wchar_t encoding_;
+    unsigned char encoding_;
     std::string price_string_;
     std::string actual_to_;
     std::string contact_url_;
-    wchar_t promote_as_;
+    unsigned char promote_as_;
     std::string seller_name_;
     std::string description_;
     std::string MIME_picture_type_;
@@ -386,7 +397,7 @@ private:
 class ENCRFrame : public FrameEntity {
 private:
     std::string owner_id_;
-    wchar_t method_symbol_;
+    unsigned char method_symbol_;
     std::string encrypt_data_;
 };
 
@@ -395,7 +406,7 @@ private:
 class GRIDFrame : public FrameEntity {
 private:
     std::string owner_id_;
-    wchar_t group_symbol_;
+    unsigned char group_symbol_;
     std::string group_data_;
 };
 
@@ -403,7 +414,7 @@ private:
 
 class PRIVFrame : public FrameEntity {
 private:
-    wchar_t owner_id;
+    unsigned char owner_id;
     std::string private_data_;
 };
 
@@ -412,30 +423,8 @@ private:
     std::string file_path_;
     std::ifstream file_;
     Header* file_header_;
-    std::map<std::string, std::any>;
+    std::multimap<std::string, std::any> frames_container_;
 public:
-    MP3Entity(const std::string& file_path) :
-            file_path_(file_path) {
-        file_.open(file_path_);
-        if (file_.is_open()) {
-            std::cout << file_path_ << " opened successfully";
-        } else {
-            std::cout << "FileOpenError: " << file_path_ << " open corrupted";
-        }
-
-        file_header_ = new Header(file_);
-
-        if (file_header_->GetExtendedHeaderFlag()) {
-            std::string tmp_ehsize;
-            for (int i = 0; i < 4; i++) tmp_ehsize += file_.get();
-            size_t extended_header_size = static_cast<uint8_t>(tmp_ehsize[0]) << 24U |
-                                          static_cast<uint8_t>(tmp_ehsize[1]) << 16U |
-                                          static_cast<uint8_t>(tmp_ehsize[2]) << 8U |
-                                          static_cast<uint8_t>(tmp_ehsize[3]);
-            file_.seekg(extended_header_size - 4, std::ios::cur);
-        }
-
-
-    }
+    MP3Entity(const std::string& file_path);
 
 };
